@@ -15,26 +15,34 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.algaworks.socialbooks.domain.Livro;
-import com.algaworks.socialbooks.repository.LivrosRepository;
+import com.algaworks.socialbooks.services.LivrosService;
+import com.algaworks.socialbooks.services.exceptions.LivroNaoEncontradoException;
 
 @RestController
 @RequestMapping("/livros")
 public class LivrosResources {
 	
 		@Autowired
-		private LivrosRepository livrosRepository;
+		private LivrosService livrosService;
 		
 		@RequestMapping(method = RequestMethod.GET)
-		public ResponseEntity<List<Livro>> listar() {
-			
-			return ResponseEntity.status(HttpStatus.OK).body(livrosRepository.findAll());
-			
+		public ResponseEntity<List<Livro>> listar() {			
+			return ResponseEntity.status(HttpStatus.OK).body(livrosService.listar());			
 		}
+		
+		
+		/*
+		 * ***********************************************************
+		 * ROTINA PARA SALVAR LIVROS
+		 * 
+		 * ***********************************************************
+		 */
+				
 		
 		@RequestMapping(method = RequestMethod.POST)
 		public ResponseEntity<Void> salvar(@RequestBody Livro livro) {
 			
-			livrosRepository.save(livro);
+			livrosService.salvar(livro);
 			
 			//Criando uma uri
 			URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
@@ -43,41 +51,48 @@ public class LivrosResources {
 			return ResponseEntity.created(uri).build();
 		}
 		
+		
+		/*
+		 * ***********************************************************
+		 * ROTINA PARA BUSCAR LIVROS
+		 * 
+		 * ***********************************************************
+		 */
+		
 		@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 		public ResponseEntity<?> buscar(@PathVariable("id") Long id) {
-			
-			Livro livro = livrosRepository.findOne(id);
-			
-			if (livro == null) {
-				return ResponseEntity.notFound().build();
-			}
-			
+			Livro livro = livrosService.buscar(id);									
 			return ResponseEntity.status(HttpStatus.OK).body(livro);				
 			 			
 		}
 		
+		
+		/*
+		 * ***********************************************************
+		 * ROTINA PARA EXCLUIR LIVROS
+		 * 
+		 * ***********************************************************
+		 */				
+		
 		@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 		public ResponseEntity<Void> deletar(@PathVariable("id") Long id) {
-			
-			try {
-				livrosRepository.delete(id);				
-			} catch (EmptyResultDataAccessException e) {
-				return ResponseEntity.notFound().build();
-			}
-			
-			return ResponseEntity.noContent().build();
-			
-			
+			livrosService.deletar(id);			
+			return ResponseEntity.noContent().build();			
 		}
 		
+		
+		/*
+		 * ***********************************************************
+		 * ROTINA PARA ATUALIZAR LIVROS
+		 * 
+		 * ***********************************************************
+		 */	
+		
 		@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-		public ResponseEntity<Void> atualizar(@RequestBody Livro livro, @PathVariable("id") Long id) {
-			
-			livro.setId(id);						
-			livrosRepository.save(livro);
-			
-			return ResponseEntity.noContent().build();
-			
+		public ResponseEntity<Void> atualizar(@RequestBody Livro livro, @PathVariable("id") Long id) {			
+			livro.setId(id);
+			livrosService.atualizar(livro);			
+			return ResponseEntity.noContent().build();			
 		}
 		
 		
